@@ -1,0 +1,16 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: 'Hi! Thank you for letting us about this isssue. The maintainer will try to get to it ASAP! Please be patient'
+        pr-message: 'Hi! Thank you for submit this PR. The maintainer will review ASAP! Please be patient'
