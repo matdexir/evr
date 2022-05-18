@@ -2,8 +2,6 @@
 import os
 import sys
 
-from typing import TYPE_CHECKING
-
 #  from rich.panel import Panel
 #  from rich.style import Style
 #  from rich.table import Table
@@ -14,16 +12,16 @@ from rich.traceback import Traceback
 
 from textual import events
 from textual.app import App
-#  from textual.reactive import Reactive
+from textual.reactive import Reactive
 from textual.widgets import Footer, Header, FileClick, ScrollView, DirectoryTree   
 
 #  from textual_inputs import TextInput, IntegerInput
 
-if TYPE_CHECKING:
-   from textual.message import Message
-
 
 class CustomHeader(Header):
+    '''
+    Customization for the header side of the TUI
+    '''
     def __init__(self):
         raise NotImplementedError
     def render(self):
@@ -32,6 +30,9 @@ class CustomHeader(Header):
         raise NotImplementedError
 
 class CustomFooter(Footer):
+    '''
+    Customization for the footer side of the TUI
+    '''
     def __init__(self):
         raise NotImplementedError
     def render(self):
@@ -46,7 +47,7 @@ class MainApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.todo_items = []
-        self.path = "."
+        self.path = ".."
         
     async def on_load(self, event: events.Load) -> None:
         await self.bind("q", "quit", "Quit")
@@ -64,7 +65,7 @@ class MainApp(App):
         
         # Basic body structure
         await self.view.dock(
-            ScrollView(self.directory), edge="left", size=30, name="sidebar"   
+            ScrollView(self.directory), edge="left", size=25, name="sidebar"   
         )
         await self.view.dock(self.body, edge="top")
 
@@ -72,6 +73,7 @@ class MainApp(App):
         """A message sent by the directory tree when a file is clicked."""
 
         syntax: RenderableType
+
         try:
             # Construct a Syntax object for the path in the message
             syntax = Syntax.from_path(
@@ -79,13 +81,14 @@ class MainApp(App):
                 line_numbers=True,
                 word_wrap=True,
                 indent_guides=True,
-                theme="monokai",
+                theme="dracula",
+                background_color=None
             )
         except Exception:
             # Possibly a binary file
             # For demonstration purposes we will show the traceback
             syntax = Traceback(theme="monokai", width=None, show_locals=True)
-        self.app.sub_title = os.path.basename(message.path)
+        #  self.sub_title = os.path.basename(message.path)
         await self.body.update(syntax)
 
 if __name__ == '__main__':
