@@ -10,13 +10,12 @@ from typing import TYPE_CHECKING
 from textual import events
 from textual.app import App
 #  from textual.reactive import Reactive
-from textual.widgets import Footer, Header  
+from textual.widgets import Footer, Header,   
 
 #  from textual_inputs import TextInput, IntegerInput
 
 if TYPE_CHECKING:
-   #  from textual.message import Message
-    pass
+   from textual.message import Message
 
 
 class CustomHeader(Header):
@@ -50,6 +49,7 @@ class MainApp(App):
 
     async def on_mount(self, event: events.Mount) -> None:
         await self.view.dock(Header(), edge="top")
+        await self.view.dock(Footer(), edge="bottom")
 
 if __name__ == '__main__':
     MainApp.run(title="EVR" ,log="textual.log")
