@@ -4,18 +4,20 @@ import sys
 
 #  from rich.panel import Panel
 #  from rich.style import Style
-#  from rich.table import Table
+from rich.table import Table
 #  from rich.text import Text
 from rich.console import RenderableType
+from rich.style import Style
 from rich.syntax import Syntax
 from rich.traceback import Traceback
 
 from textual import events
 from textual.app import App
+from textual.message import Message
 from textual.reactive import Reactive
 from textual.widgets import Footer, Header, FileClick, ScrollView, DirectoryTree   
 
-#  from textual_inputs import TextInput, IntegerInput
+from textual_inputs import TextInput, IntegerInput
 
 
 class CustomHeader(Header):
@@ -23,11 +25,20 @@ class CustomHeader(Header):
     Customization for the header side of the TUI
     '''
     def __init__(self):
-        raise NotImplementedError
-    def render(self):
-        raise NotImplementedError
-    async def on_click(self):
-        raise NotImplementedError
+        super().__init__()
+        self.tall = False
+        self.style = "dark on white"
+        self.style = Style(color="white", bgcolor="blue" )
+    def render(self) -> Table:
+        header_table = Table.grid(padding=(0, 1), expand=True) 
+        header_table.add_column("Title",justify="center", ratio=1)
+        header_table.add_column("Clock",justify="right", width=10)
+        header_table.add_row(
+            self.full_title, self.get_clock()
+        )
+        return header_table
+    #  async def on_click(self):
+        #  raise NotImplementedError
 
 class CustomFooter(Footer):
     '''
@@ -55,18 +66,27 @@ class MainApp(App):
         await self.bind("escape", "reset_focus", show=False)
 
     async def on_mount(self, event: events.Mount) -> None:
+        self.greetings = TextInput(
+            name="greetings",
+            placeholder="Please enter some nice greetings",
+            title="Greetings",
+        )
+        self.greetings.on_change_handler_name = "handle_greetings_change"
 
         self.body = ScrollView() 
         self.directory = DirectoryTree(self.path, "Code") 
 
         #  Header and footer
-        await self.view.dock(Header(), edge="top")
+        await self.view.dock(CustomHeader(), edge="top")
         await self.view.dock(Footer(), edge="bottom")
         
         # Basic body structure
         await self.view.dock(
             ScrollView(self.directory), edge="left", size=25, name="sidebar"   
         )
+        #  await self.view.dock(
+            #  self.greetings, edge="right"
+        #  )
         await self.view.dock(self.body, edge="top")
 
     async def handle_file_click(self, message: FileClick) -> None:
@@ -90,6 +110,8 @@ class MainApp(App):
             syntax = Traceback(theme="monokai", width=None, show_locals=True)
         #  self.sub_title = os.path.basename(message.path)
         await self.body.update(syntax)
+    async def handle_greetings_change(self, message: Message):
+        self.log(f"The value of self.greetings is: {message.sender.value}")
 
 if __name__ == '__main__':
     MainApp.run(title="EVR" ,log="textual.log")
