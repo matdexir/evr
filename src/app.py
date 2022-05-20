@@ -20,6 +20,8 @@ from textual.reactive import Reactive
 from textual.widgets import DirectoryTree, Footer, Header,ScrollView, Static
 from textual_inputs import IntegerInput, TextInput
 
+from definitions.todo_item import todoItem
+
 
 class CustomHeader(Header):
     """
@@ -107,11 +109,12 @@ class MainApp(App):
         await self.view.dock(self.new_todo, edge="right", size=30)
 
     async def action_submit(self) -> None:
-        self.todo_items.append(Text(self.new_todo.value).on(click="app.delete()"))
+        self.todo_items.append(todoItem(self.new_todo.value))
         self.new_todo.value = ""
-        formatted = "\n".join(self.todo_items)
-        await self.output.update(Panel(formatted, title="Todos", height=15))
+        formatted = "\n".join(item.content for item in self.todo_items)
+        #  await self.output.update(Panel(formatted, title="Todos", height=15))
         self.log(f"The todos are: {formatted}")
+        #  self.log(f"{self.todo_items}")
 
     async def action_reset_focus(self) -> None:
         await self.header.focus()
