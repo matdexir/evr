@@ -1,23 +1,22 @@
-#  import rich.box
 import os
 import sys
 
-#  from rich.panel import Panel
-#  from rich.style import Style
-from rich.table import Table
+import rich.box
 #  from rich.text import Text
 from rich.console import RenderableType
+from rich.panel import Panel
 from rich.style import Style
 from rich.syntax import Syntax
+#  from rich.style import Style
+from rich.table import Table
 from rich.traceback import Traceback
-
 from textual import events
 from textual.app import App
 from textual.message import Message
 from textual.reactive import Reactive
-from textual.widgets import Footer, Header, FileClick, ScrollView, DirectoryTree   
-
-from textual_inputs import TextInput, IntegerInput
+from textual.widgets import (DirectoryTree, FileClick, Footer, Header,
+                             ScrollView, Static)
+from textual_inputs import IntegerInput, TextInput
 
 
 class CustomHeader(Header):
@@ -44,18 +43,20 @@ class CustomFooter(Footer):
     '''
     Customization for the footer side of the TUI
     '''
-    def __init__(self):
+    def __init__(self) -> None:
         raise NotImplementedError
-    def render(self):
+    def render(self) -> None:
         raise NotImplementedError
-    async def on_click(self):
+    async def on_click(self) -> None:
         raise NotImplementedError
 
 class MainApp(App):
     '''
         This is the main class definition for my app. There you can find all the key binds and other layout configs
     '''
-    def __init__(self, **kwargs):
+    current_index: Reactive[int] = Reactive(-1)
+
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.todo_items = []
         self.path = ".."
@@ -66,27 +67,43 @@ class MainApp(App):
         await self.bind("escape", "reset_focus", show=False)
 
     async def on_mount(self, event: events.Mount) -> None:
-        self.greetings = TextInput(
-            name="greetings",
-            placeholder="Please enter some nice greetings",
-            title="Greetings",
+        self.new_todo = TextInput(
+            name="todos",
+            placeholder="what next todo",
+            title="todos",
         )
-        self.greetings.on_change_handler_name = "handle_greetings_change"
+        self.new_todo.on_change_handler_name = "handle_new_todo_change"
 
+        self.age = IntegerInput(
+            name="age",
+            placeholder="enter your age...",
+            title="Age",
+        )
+        self.age.on_change_handler_name = "handle_age_change"
+
+        self.header = CustomHeader() 
         self.body = ScrollView() 
         self.directory = DirectoryTree(self.path, "Code") 
+        self.footer = Footer()
+
+        self.output = Static(
+            renderable=Panel(
+                "", title="Report", border_style="blue", box=rich.box.SQUARE
+            )
+        )
 
         #  Header and footer
-        await self.view.dock(CustomHeader(), edge="top")
-        await self.view.dock(Footer(), edge="bottom")
+        await self.view.dock(self.header, edge="top")
+        await self.view.dock(self.footer, edge="bottom")
+        await self.view.dock(self.output, edge="left", size=40)
         
         # Basic body structure
-        await self.view.dock(
-            ScrollView(self.directory), edge="left", size=25, name="sidebar"   
-        )
         #  await self.view.dock(
-            #  self.greetings, edge="right"
+            #  ScrollView(self.directory), edge="left", size=30, name="sidebar"
         #  )
+        await self.view.dock(
+            self.new_todo, edge="right"
+        )
         await self.view.dock(self.body, edge="top")
 
     async def handle_file_click(self, message: FileClick) -> None:
@@ -107,11 +124,24 @@ class MainApp(App):
         except Exception:
             # Possibly a binary file
             # For demonstration purposes we will show the traceback
-            syntax = Traceback(theme="monokai", width=None, show_locals=True)
+            syntax = Traceback(theme="dracula", width=None, show_locals=True)
         #  self.sub_title = os.path.basename(message.path)
         await self.body.update(syntax)
-    async def handle_greetings_change(self, message: Message):
-        self.log(f"The value of self.greetings is: {message.sender.value}")
+    async def action_submit(self) -> None:
+        self.todo_items.append(self.new_todo.value)
+        self.new_todo.value = ""
+        formatted = "\n".join(self.todo_items)
+        await self.output.update(
+            Panel(formatted, title="Todos")
+        )
+        self.log(f"The todos are: {formatted}")
+    async def action_reset_focus(self) -> None:
+        await self.header.focus()
+        
+    async def handle_new_todo_change(self, message: Message) -> None:
+        self.log(f"The value of self.new_todo is: {message.sender.value}")
+    async def handle_age_change(self, message: Message) -> None:
+        self.log(f"The value of self.age is: {message.sender.value}")
 
 if __name__ == '__main__':
     MainApp.run(title="EVR" ,log="textual.log")
