@@ -111,8 +111,8 @@ class MainApp(App):
     async def action_submit(self) -> None:
         self.todo_items.append(todoItem(self.new_todo.value))
         self.new_todo.value = ""
-        formatted = "\n".join(item.content for item in self.todo_items)
-        #  await self.output.update(Panel(formatted, title="Todos", height=15))
+        formatted = "\n".join([str(item.content) for item in self.todo_items])
+        await self.output.update(Panel(formatted, title="Todos", height=15))
         self.log(f"The todos are: {formatted}")
         #  self.log(f"{self.todo_items}")
 
