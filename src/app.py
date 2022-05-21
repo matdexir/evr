@@ -8,6 +8,7 @@ from rich.console import RenderableType
 from rich.panel import Panel
 from rich.style import Style
 from rich.text import Text
+
 #  from rich.syntax import Syntax
 
 #  from rich.style import Style
@@ -17,7 +18,7 @@ from textual import events
 from textual.app import App
 from textual.message import Message
 from textual.reactive import Reactive
-from textual.widgets import DirectoryTree, Footer, Header,ScrollView, Static
+from textual.widgets import DirectoryTree, Footer, Header, ScrollView, Static
 from textual_inputs import IntegerInput, TextInput
 
 from definitions.todo_item import todoItem
@@ -40,6 +41,7 @@ class CustomHeader(Header):
         header_table.add_column("Clock", justify="right", width=10)
         header_table.add_row(self.full_title, self.get_clock())
         return header_table
+
 
 class CustomFooter(Footer):
     """
@@ -90,11 +92,8 @@ class MainApp(App):
         self.directory = DirectoryTree(self.path, "Code")
         self.footer = Footer()
 
-
         self.output = ScrollView(
-            Panel(
-                "", title="Report", border_style="blue", box=rich.box.SQUARE, height=15
-            )
+            Panel("", title="Report", border_style="blue", box=rich.box.SQUARE)
         )
 
         #  Header and footer
@@ -102,17 +101,13 @@ class MainApp(App):
         await self.view.dock(self.footer, edge="bottom")
         await self.view.dock(self.output, edge="left", size=40)
 
-        # Basic body structure
-        #  await self.view.dock(
-        #  ScrollView(self.directory), edge="left", size=30, name="sidebar"
-        #  )
         await self.view.dock(self.new_todo, edge="right", size=30)
 
     async def action_submit(self) -> None:
         self.todo_items.append(todoItem(self.new_todo.value))
         self.new_todo.value = ""
         formatted = "\n".join([str(item.content) for item in self.todo_items])
-        await self.output.update(Panel(formatted, title="Todos", height=15))
+        await self.output.update(Panel(formatted, title="Todos"))
         self.log(f"The todos are: {formatted}")
         #  self.log(f"{self.todo_items}")
 
