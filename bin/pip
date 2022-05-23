@@ -1,4 +1,4 @@
-#!/home/matdexir/Files/Projects/my_evr/evr/bin/python
+#!/home/matdexir/Files/Projects/evr/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
