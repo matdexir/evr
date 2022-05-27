@@ -6,6 +6,7 @@ import rich.box
 #  from rich.text import Text
 from rich.console import RenderableType
 from rich.panel import Panel
+
 #  from rich.text import Text
 #  from textual.geometry import Size
 
@@ -15,14 +16,14 @@ from rich.panel import Panel
 #  from rich.traceback import Traceback
 from textual import events
 from textual.app import App
-#  from textual.message import Message
+from textual.message import Message
 from textual.reactive import Reactive
 from textual.widgets import DirectoryTree, ScrollView, Static, Footer
 from textual_inputs import IntegerInput, TextInput
+from misc.multiples import Hover
 
 from definitions.todo_item import todoItem
 from layout.header import CustomHeader
-
 
 
 class MainApp(App):
@@ -33,6 +34,7 @@ class MainApp(App):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.todo_items = []
+        self.items_tuple = (Hover() for _ in range(2))
         self.path = ".."
 
     async def on_load(self, event: events.Load) -> None:
@@ -60,32 +62,33 @@ class MainApp(App):
         self.footer = Footer()
 
         self.output = ScrollView(
-            Panel("", title="Report", border_style="blue", box=rich.box.SQUARE)
+            Panel("", title="Report", border_style="blue", box=rich.box.ASCII2)
         )
 
         #  Header and footer
         await self.view.dock(self.header, edge="top")
         await self.view.dock(self.footer, edge="bottom")
-        await self.view.dock(self.output, edge="left", size=50)
-
         await self.view.dock(self.insert_todo, edge="right", size=50)
+        # await self.view.dock(*self.items_tuple)
+        await self.view.dock(self.output, edge="left", size=50)
 
     async def action_submit(self) -> None:
         self.todo_items.append(todoItem(self.insert_todo.value))
         self.insert_todo.value = ""
         #  formatted = "\n".join([str(item.content) for item in self.todo_items])
         items = tuple(self.todo_items)
-        await self.view.dock(*items, size=30)
+        await self.output.update(ScrollView(*items))
+        del items
         #  self.log(f"The todos are: {formatted}")
 
     async def action_reset_focus(self) -> None:
         await self.header.focus()
 
-    #  async def handle_insert_todo_change(self, message: Message) -> None:
-        #  self.log(f"The value of self.insert_todo is: {message.sender.value}")
+    async def handle_insert_todo_change(self, message: Message) -> None:
+        self.log(f"The value of self.insert_todo is: {message.sender.value}")
 
-    #  async def handle_age_change(self, message: Message) -> None:
-        #  self.log(f"The value of self.age is: {message.sender.value}")
+    async def handle_age_change(self, message: Message) -> None:
+        self.log(f"The value of self.age is: {message.sender.value}")
 
 
 if __name__ == "__main__":
